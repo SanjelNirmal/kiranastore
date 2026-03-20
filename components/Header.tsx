@@ -180,7 +180,7 @@ const Header: React.FC<HeaderProps> = ({ user, onNavigate, onSearch, cartCount, 
                     onClick={() => handleSuggestionClick(product)}
                   >
                     <div className="w-10 h-10 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                      <img src={product.image_url} alt={product.name} loading="lazy" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1">
                       <div className="text-sm font-medium text-gray-800 line-clamp-1"><Translate text={product.name} /></div>

@@ -338,7 +338,7 @@ Address: ${address}
                     <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b last:border-0 items-center">
                       <div className="col-span-1 md:col-span-6 flex gap-4">
                         <div className="w-20 h-20 bg-gray-100 flex-shrink-0">
-                          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                          <img src={item.image_url} alt={item.name} loading="lazy" className="w-full h-full object-cover" />
                         </div>
                         <div>
                           <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1">{item.name}</h3>

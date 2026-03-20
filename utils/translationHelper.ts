@@ -1,5 +1,5 @@
 
-const API_KEY = 'AIzaSyCBTOmu4tv0FWSpQ4Fc5DoiGcAx4EDPmLQ'; // Provided API Key
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 const CACHE_PREFIX = 'sunshine_trans_';
 
 // Fallback Dictionary for static UI elements (English -> Nepali)
@@ -102,8 +102,8 @@ export const translateText = async (text: string, targetLang: string): Promise<s
   const cached = localStorage.getItem(cacheKey);
   if (cached) return cached;
 
-  // 3. API Call (Only if not disabled by previous errors)
-  if (apiDisabled) return text;
+  // 3. API Call (Only if not disabled by previous errors and key is available)
+  if (apiDisabled || !API_KEY) return text;
 
   try {
     const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${API_KEY}`, {

@@ -88,13 +88,21 @@ const Home: React.FC<HomeProps> = ({ onNavigate, selectedCategory, searchQuery, 
 
     if (error) throw error;
     
-    // Fetch Review aggregates
+    // Fetch Review aggregates - build a map in O(N+M) instead of filtering per product
     const { data: reviewData } = await supabase.from('reviews').select('product_id, rating');
     
+    const reviewMap = new Map<string, { sum: number; count: number }>();
+    for (const r of reviewData || []) {
+      const entry = reviewMap.get(r.product_id) ?? { sum: 0, count: 0 };
+      entry.sum += r.rating;
+      entry.count += 1;
+      reviewMap.set(r.product_id, entry);
+    }
+
     const enrichedProducts: Product[] = (prodData || []).map(p => {
-        const productReviews = (reviewData || []).filter(r => r.product_id === p.id);
-        const count = productReviews.length;
-        const avg = count > 0 ? productReviews.reduce((acc, curr) => acc + curr.rating, 0) / count : 0;
+        const agg = reviewMap.get(p.id);
+        const count = agg?.count ?? 0;
+        const avg = count > 0 ? (agg!.sum / count) : 0;
         return {
             ...p,
             avg_rating: avg,
@@ -301,7 +309,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, selectedCategory, searchQuery, 
                    {featuredProducts.slice(0, 2).map((p, idx) => (
                       <div key={`feat-${p.id}`} className={`bg-white p-6 rounded-lg shadow-sm flex gap-6 border-l-8 hover:shadow-md transition-shadow ${idx === 0 ? 'border-brand-orange' : 'border-brand-purple'}`}>
                          <div className="w-32 h-32 md:w-40 md:h-40 bg-gray-100 flex-shrink-0 cursor-pointer rounded-md overflow-hidden" onClick={() => onNavigate('product-detail', p.id)}>
-                            <img src={p.image_url} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" alt={p.name} />
+                            <img src={p.image_url} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" alt={p.name} />
                          </div>
                          <div className="flex flex-col justify-center">
                             <div className="text-xs font-bold text-brand-orange uppercase mb-2 tracking-wide">{idx === 0 ? <Translate text="Editor's Pick" /> : <Translate text="Top Rated" />}</div>

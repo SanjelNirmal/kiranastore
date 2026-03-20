@@ -41,7 +41,7 @@ const Wishlist: React.FC<WishlistProps> = ({ products, onNavigate, onMoveToCart,
                   className="aspect-square bg-gray-100 mb-4 cursor-pointer overflow-hidden rounded-sm"
                   onClick={() => onNavigate('product-detail', product.id)}
                 >
-                  <img src={product.image_url} alt={product.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                  <img src={product.image_url} alt={product.name} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                 </div>
                 
                 <h3 
