@@ -100,7 +100,7 @@ const Login: React.FC<LoginProps> = ({ onNavigate }) => {
           <p className="text-gray-500 mt-2 text-sm">
             {isResetting 
               ? 'Enter your email to receive a password reset link' 
-              : (isRegistering ? 'Join Sunshine E-Store today' : 'Log in to your Sunshine account')}
+              : (isRegistering ? 'Join KIRANA E-Store today' : 'Log in to your KIRANA account')}
           </p>
         </div>
 
