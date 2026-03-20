@@ -1,7 +1,8 @@
 KIRANA E-Store 🛒
 
+```
 KIRANA E-Store is a hyper-local, single-vendor e-commerce web application designed to digitize neighborhood stores in Nepal. It allows users to browse products, manage carts, make secure payments via eSewa, and provides store owners with an admin dashboard to manage inventory and orders.
-
+```
 Table of Contents
 
 Features
