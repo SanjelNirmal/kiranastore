@@ -112,7 +112,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ productId, onNavigate, on
         <div className="bg-white rounded-sm shadow-sm p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-12 mb-6">
           <div>
             <div className="aspect-square bg-gray-100 border border-gray-100 rounded-lg overflow-hidden group">
-               <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+               <img src={product.image_url} alt={product.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
             </div>
           </div>
 

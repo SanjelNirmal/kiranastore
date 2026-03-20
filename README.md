@@ -97,10 +97,21 @@ Create a free Supabase account: https://supabase.com
 
 Create a project and add tables (Users, Products, Orders, Order_Items)
 
-Copy Supabase URL and API key into .env file:
+Copy `.env.example` to `.env` and fill in your credentials:
 
+```
+cp .env.example .env
+```
+
+Required environment variables:
+
+```
 VITE_SUPABASE_URL=<your-supabase-url>
 VITE_SUPABASE_ANON_KEY=<your-anon-key>
+VITE_GEMINI_API_KEY=<your-google-translation-api-key>  # Optional – falls back to offline dictionary
+```
+
+> **Note:** Never commit `.env` to version control. It is listed in `.gitignore`.
 Usage
 
 Open the application in your browser: http://localhost:5173

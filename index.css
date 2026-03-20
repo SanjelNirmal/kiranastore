@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: 'Inter', sans-serif;
+
+  --color-brand-navy: #141A46;
+  --color-brand-purple: #784072;
+  --color-brand-orange: #ED872D;
+  --color-brand-gray: #F5F5F5;
+
+  --animate-fade-in-up: fade-in-up 0.4s ease-out both;
+  --animate-fade-in: fade-in 0.3s ease-out both;
+}
+
+/* Smooth scrolling & reduced motion */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Default smooth transitions for interactive elements */
+button,
+a,
+[role='button'] {
+  transition-property: color, background-color, border-color, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Custom animation keyframes (used by animate-fade-in-up and animate-fade-in) */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
