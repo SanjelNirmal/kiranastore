@@ -21,7 +21,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <p>Pyangaun, Godawari 11 </p>
             <p>Lalitpur, Nepal 44700</p>
             <p>redmi.roshan07@gmail.com</p>
-            <p></p>
+            <p>desharprabesh@gmail.com</p>
           </div>
         </div>
 

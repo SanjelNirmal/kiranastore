@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, getSupabaseConfigError } from './supabaseClient';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
 import Home from './pages/Home';
@@ -34,6 +33,10 @@ interface ViewState {
 
 const AppContent: React.FC = () => {
   const { toast } = useToast();
+
+  const supabaseConfigError = getSupabaseConfigError();
+  const supabaseReady = !supabaseConfigError && supabase !== null;
+
   const [currentView, setCurrentView] = useState<string>('home');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -44,27 +47,52 @@ const AppContent: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<Product[]>([]);
 
+  // If env is missing, show a clear message instead of crashing.
+  if (!supabaseReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-xl w-full bg-white rounded-lg shadow p-6">
+          <h1 className="text-2xl font-semibold mb-3">Configuration required</h1>
+          <p className="text-sm text-gray-700 mb-4">{supabaseConfigError}</p>
+
+          <div className="text-sm bg-gray-50 border rounded p-3 font-mono whitespace-pre-wrap">
+            VITE_SUPABASE_URL=...{'\n'}
+            VITE_SUPABASE_ANON_KEY=...
+          </div>
+
+          <p className="text-sm text-gray-600 mt-4">
+            Local: copy <code>.env.example</code> to <code>.env</code>. Deployed: set env vars in your hosting settings.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     const initializeSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase!.auth.getSession();
       if (session?.user) await fetchUserProfile(session.user.id, session.user.email || '');
       else setLoadingAuth(false);
     };
+
     initializeSession();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+
+    const { data: { subscription } } = supabase!.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         await fetchUserProfile(session.user.id, session.user.email || '');
       } else {
         setUser(null);
         setLoadingAuth(false);
-        setWishlist([]); 
+        setWishlist([]);
         if (['admin', 'cart', 'wishlist', 'profile'].includes(currentView)) {
           setCurrentView('home');
         }
       }
     });
+
     return () => subscription.unsubscribe();
-  }, []); 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Redirect after successful login
   useEffect(() => {
@@ -82,17 +110,25 @@ const AppContent: React.FC = () => {
 
   const fetchUserProfile = async (userId: string, email: string) => {
     try {
-      let { data: profile } = await supabase.from('profiles').select('role, full_name, phone_number').eq('id', userId).maybeSingle();
+      let { data: profile } = await supabase!
+        .from('profiles')
+        .select('role, full_name, phone_number')
+        .eq('id', userId)
+        .maybeSingle();
+
       if (email.toLowerCase().includes('admin') && (!profile || profile.role !== 'admin')) {
-          await supabase.from('profiles').upsert({ id: userId, email, role: 'admin', full_name: email.split('@')[0] });
-          profile = { ...profile, role: 'admin' };
+        await supabase!.from('profiles').upsert({ id: userId, email, role: 'admin', full_name: email.split('@')[0] });
+        profile = { ...profile, role: 'admin' };
       }
-      const role: UserRole = profile?.role === 'admin' ? 'admin' : (email.includes('admin') ? 'admin' : 'customer');
+
+      const role: UserRole =
+        profile?.role === 'admin' ? 'admin' : (email.includes('admin') ? 'admin' : 'customer');
+
       setUser({ id: userId, email, role, full_name: profile?.full_name || '', phone_number: profile?.phone_number || '' });
-    } catch (err) { 
-      setUser({ id: userId, email, role: 'customer' }); 
-    } finally { 
-      setLoadingAuth(false); 
+    } catch (err) {
+      setUser({ id: userId, email, role: 'customer' });
+    } finally {
+      setLoadingAuth(false);
     }
   };
 
@@ -100,17 +136,24 @@ const AppContent: React.FC = () => {
     const userKey = user ? user.id : 'guest';
     const savedCart = localStorage.getItem(`sunshine_cart_${userKey}`);
     setCart(savedCart ? JSON.parse(savedCart) : []);
-    
+
     const loadWishlist = async () => {
       if (user) {
-        const { data: wishlistItems } = await supabase.from('wishlists').select('product_id').eq('user_id', user.id);
+        const { data: wishlistItems } = await supabase!
+          .from('wishlists')
+          .select('product_id')
+          .eq('user_id', user.id);
+
         if (wishlistItems?.length) {
-             const ids = wishlistItems.map(item => item.product_id);
-             const { data: products } = await supabase.from('products').select('*').in('id', ids);
-             setWishlist(products || []);
-        } else setWishlist([]);
+          const ids = wishlistItems.map(item => item.product_id);
+          const { data: products } = await supabase!.from('products').select('*').in('id', ids);
+          setWishlist(products || []);
+        } else {
+          setWishlist([]);
+        }
       }
     };
+
     loadWishlist();
   }, [user]);
 
@@ -121,8 +164,8 @@ const AppContent: React.FC = () => {
 
   const addToCart = (product: Product, quantityToShop: number = 1) => {
     if (product.stock_quantity <= 0) {
-        toast('error', "Item is out of stock.");
-        return;
+      toast('error', 'Item is out of stock.');
+      return;
     }
 
     setCart(prev => {
@@ -131,14 +174,15 @@ const AppContent: React.FC = () => {
       const newTotal = currentInCart + quantityToShop;
 
       if (newTotal > product.stock_quantity) {
-          toast('error', `Only ${product.stock_quantity} units available. You already have ${currentInCart} in cart.`);
-          return prev;
+        toast('error', `Only ${product.stock_quantity} units available. You already have ${currentInCart} in cart.`);
+        return prev;
       }
 
       if (existing) {
         toast('success', `Added ${quantityToShop} more to cart.`);
         return prev.map(item => item.id === product.id ? { ...item, quantity: newTotal } : item);
       }
+
       toast('success', `Added ${quantityToShop} units to cart.`);
       return [...prev, { ...product, quantity: quantityToShop }];
     });
@@ -147,14 +191,14 @@ const AppContent: React.FC = () => {
   const toggleWishlist = async (product: Product) => {
     const isRemoving = !!wishlist.find(p => p.id === product.id);
     setWishlist(prev => isRemoving ? prev.filter(p => p.id !== product.id) : [...prev, product]);
+
     if (user) {
-      if (isRemoving) await supabase.from('wishlists').delete().eq('user_id', user.id).eq('product_id', product.id);
-      else await supabase.from('wishlists').insert({ user_id: user.id, product_id: product.id });
+      if (isRemoving) await supabase!.from('wishlists').delete().eq('user_id', user.id).eq('product_id', product.id);
+      else await supabase!.from('wishlists').insert({ user_id: user.id, product_id: product.id });
     }
   };
 
   const handleNavigate = (page: string, id?: string, category?: string) => {
-    // If attempting to access protected pages without login, save target and show login
     const protectedPages = ['admin', 'profile', 'wishlist'];
     if (protectedPages.includes(page) && !user) {
       setRedirectTarget({ page, id, category });
@@ -171,16 +215,61 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="font-sans flex flex-col min-h-screen">
-      <Header user={user} onNavigate={handleNavigate} onSearch={q => { setSearchQuery(q); setCurrentView('home'); }} cartCount={cart.reduce((a, i) => a + i.quantity, 0)} wishlistCount={wishlist.length} onLogout={() => supabase.auth.signOut()} />
+      <Header
+        user={user}
+        onNavigate={handleNavigate}
+        onSearch={q => { setSearchQuery(q); setCurrentView('home'); }}
+        cartCount={cart.reduce((a, i) => a + i.quantity, 0)}
+        wishlistCount={wishlist.length}
+        onLogout={() => supabase!.auth.signOut()}
+      />
       <main className="flex-grow">
-        {currentView === 'home' && <Home onNavigate={handleNavigate} selectedCategory={selectedCategory} searchQuery={searchQuery} addToCart={addToCart} toggleWishlist={toggleWishlist} isInWishlist={id => !!wishlist.find(p => p.id === id)} />}
-        {currentView === 'product-detail' && selectedProductId && <ProductDetail productId={selectedProductId} onNavigate={handleNavigate} onAddToCart={addToCart} onToggleWishlist={toggleWishlist} isWishlisted={!!wishlist.find(p => p.id === selectedProductId)} user={user} />}
-        {currentView === 'cart' && <Cart cartItems={cart} onUpdateQuantity={(id, d) => setCart(p => p.map(i => i.id === id ? {...i, quantity: Math.min(i.stock_quantity, Math.max(1, i.quantity + d))} : i))} onRemove={id => setCart(p => p.filter(i => i.id !== id))} onNavigate={handleNavigate} onCheckout={() => setCart([])} user={user} />}
-        {currentView === 'wishlist' && <Wishlist products={wishlist} onNavigate={handleNavigate} onMoveToCart={p => { addToCart(p); toggleWishlist(p); }} onRemove={p => toggleWishlist(p)} />}
+        {currentView === 'home' && (
+          <Home
+            onNavigate={handleNavigate}
+            selectedCategory={selectedCategory}
+            searchQuery={searchQuery}
+            addToCart={addToCart}
+            toggleWishlist={toggleWishlist}
+            isInWishlist={id => !!wishlist.find(p => p.id === id)}
+          />
+        )}
+        {currentView === 'product-detail' && selectedProductId && (
+          <ProductDetail
+            productId={selectedProductId}
+            onNavigate={handleNavigate}
+            onAddToCart={addToCart}
+            onToggleWishlist={toggleWishlist}
+            isWishlisted={!!wishlist.find(p => p.id === selectedProductId)}
+            user={user}
+          />
+        )}
+        {currentView === 'cart' && (
+          <Cart
+            cartItems={cart}
+            onUpdateQuantity={(id, d) => setCart(p =>
+              p.map(i => i.id === id ? { ...i, quantity: Math.min(i.stock_quantity, Math.max(1, i.quantity + d)) } : i)
+            )}
+            onRemove={id => setCart(p => p.filter(i => i.id !== id))}
+            onNavigate={handleNavigate}
+            onCheckout={() => setCart([])}
+            user={user}
+          />
+        )}
+        {currentView === 'wishlist' && (
+          <Wishlist
+            products={wishlist}
+            onNavigate={handleNavigate}
+            onMoveToCart={p => { addToCart(p); toggleWishlist(p); }}
+            onRemove={p => toggleWishlist(p)}
+          />
+        )}
         {currentView === 'profile' && <Profile user={user} onNavigate={handleNavigate} onProfileUpdate={() => {}} />}
         {currentView === 'admin' && <Admin />}
         {currentView === 'login' && <Login onNavigate={handleNavigate} />}
-        {['about', 'careers', 'privacy', 'terms', 'help', 'how-to-buy', 'returns', 'contact'].includes(currentView) && <InfoPages pageId={currentView} onNavigate={handleNavigate} />}
+        {['about', 'careers', 'privacy', 'terms', 'help', 'how-to-buy', 'returns', 'contact'].includes(currentView) && (
+          <InfoPages pageId={currentView} onNavigate={handleNavigate} />
+        )}
         {currentView === 'not-found' && <NotFound onNavigate={handleNavigate} />}
       </main>
       <Footer onNavigate={handleNavigate} />
@@ -188,5 +277,12 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => <LanguageProvider><ToastProvider><AppContent /></ToastProvider></LanguageProvider>;
+const App: React.FC = () => (
+  <LanguageProvider>
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
+  </LanguageProvider>
+);
+
 export default App;

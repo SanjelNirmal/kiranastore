@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingCart, User, Menu, Heart, LogOut, X, Settings, Globe, Loader2 } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import { supabase, getSupabaseConfigError } from '../supabaseClient';
 import { Product } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import Translate from './Translate';
@@ -30,7 +30,11 @@ const Header: React.FC<HeaderProps> = ({ user, onNavigate, onSearch, cartCount, 
     "Household",
     "Personal Care"
   ];
-
+if (getSupabaseConfigError() || !supabase) {
+  setSuggestions([]);
+  setIsSearching(false);
+  return;
+}
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
