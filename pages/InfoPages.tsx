@@ -69,10 +69,10 @@ const AboutUs = () => (
     </h1>
     <div className="prose max-w-none text-gray-600 space-y-4">
       <p className="text-lg font-medium text-gray-800">
-        <Translate text="Welcome to Sunshine E-Store, Nepal's premier hyper-local marketplace connecting you directly with neighborhood sellers." />
+        <Translate text="Welcome to KIRANA E-Store, Nepal's premier hyper-local marketplace connecting you directly with neighborhood sellers." />
       </p>
       <p>
-        <Translate text="Founded in 2024, Sunshine E-Store began with a simple mission: to bridge the gap between local vendors and modern digital consumers. We believe in the power of community commerce, where buying your daily essentials supports the local economy." />
+        <Translate text="Founded in 2024, KIRANA E-Store began with a simple mission: to bridge the gap between local vendors and modern digital consumers. We believe in the power of community commerce, where buying your daily essentials supports the local economy." />
       </p>
       <p>
         <Translate text="Our platform offers a diverse range of products including fresh organic produce, bakery items, household essentials, and personal care products. Unlike traditional e-commerce giants, we prioritize speed and freshness, often delivering within hours of order placement." />
@@ -98,7 +98,7 @@ const AboutUs = () => (
 const Careers = () => (
   <div className="max-w-4xl mx-auto">
     <h1 className="text-3xl font-bold text-brand-navy mb-6 flex items-center gap-2">
-      <Briefcase className="text-brand-orange" /> <Translate text="Careers at Sunshine" />
+      <Briefcase className="text-brand-orange" /> <Translate text="Careers at KIRANA" />
     </h1>
     <p className="text-gray-600 mb-8">
       <Translate text="Join our team and help us revolutionize the local shopping experience. We are always looking for passionate individuals to join our growing family." />
